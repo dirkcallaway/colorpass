@@ -1,5 +1,9 @@
 export const COLORS = [
-  { id: 'red', label: 'Red', bg: 'bg-red-500', ring: 'ring-red-400' },
+  {
+    id: 'red',
+    label: 'Red',
+    bg: 'bg-red-500',
+    ring: 'ring-red-400' },
   {
     id: 'orange',
     label: 'Orange',
@@ -12,8 +16,16 @@ export const COLORS = [
     bg: 'bg-yellow-400',
     ring: 'ring-yellow-300',
   },
-  { id: 'green', label: 'Green', bg: 'bg-green-500', ring: 'ring-green-400' },
-  { id: 'blue', label: 'Blue', bg: 'bg-blue-500', ring: 'ring-blue-400' },
+  {
+    id:'green',
+    label: 'Green',
+    bg: 'bg-green-500',
+    ring: 'ring-green-400' },
+  {
+    id: 'blue',
+    label: 'Blue',
+    bg: 'bg-blue-500',
+    ring: 'ring-blue-400' },
   {
     id: 'purple',
     label: 'Purple',
