@@ -7,19 +7,20 @@ const props = defineProps<{
   currentGuess: (ColorId | null)[];
   status: 'playing' | 'won' | 'lost';
   maxGuesses: number;
+  hintedSlots: Record<number, ColorId>;
 }>();
 
 const emit = defineEmits<{ removeColor: [index: number] }>();
 
 const rows = computed(() => {
-  const result: { colors: (ColorId | null)[], feedback: any, isActive: boolean }[] = [];
+  const result: { colors: (ColorId | null)[], feedback: any, isActive: boolean, hintedSlots?: Record<number, ColorId> }[] = [];
   
   for (const guess of props.guesses) {
     result.push({ colors: guess.colors, feedback: guess.feedback, isActive: false });
   }
 
   if (props.status === 'playing') {
-    result.push({ colors: props.currentGuess, feedback: undefined, isActive: true });
+    result.push({ colors: props.currentGuess, feedback: undefined, isActive: true, hintedSlots: props.hintedSlots });
   }
 
   const remaining = props.maxGuesses - result.length;
@@ -39,6 +40,7 @@ const rows = computed(() => {
       :colors="row.colors"
       :feedback="row.feedback"
       :is-active="row.isActive"
+      :hinted-slots="row.hintedSlots"
       @remove="emit('removeColor', $event)"
     />
   </div>
