@@ -17,6 +17,7 @@ function colorBg(id: ColorId | null) {
 
 <template>
   <div class="flex items-center gap-3">
+    <div class="w-10" />
     <div class="flex gap-2">
       <button
         v-for="(color, i) in colors"
