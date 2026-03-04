@@ -67,4 +67,82 @@ export function useGameState() {
     const idx = currentGuess.value.indexOf(null);
     if (idx !== -1) currentGuess.value[idx] = colorId;
   }
+
+  function removeColor(index: number) {
+    if (status.value !== 'playing') return;
+    currentGuess.value[index] = null;
+  }
+
+  const canSubmit = computed(() =>
+    status.value === 'playing' &&
+    currentGuess.value.every(guess => guess !== null)
+  )
+
+  function submitGuess() {
+    if (!canSubmit.value) return;
+    const colors = currentGuess.value as ColorId[];
+    const feedback = checkGuess(code, colors);
+    guesses.value.push({ colors, feedback });
+    currentGuess.value = Array(CODE_LENGTH).fill(null);
+
+    if (feedback.black === CODE_LENGTH) {
+      status.value = 'won';
+      updateStats(true);
+    } else if (guesses.value.length >= MAX_GUESSES) {
+      status.value = 'lost';
+      updateStats(false);
+    }
+
+    saveState();
+  }
+
+  function updateStats(won: boolean) {
+    const s = stats.value;
+    s.gamesPlayed++;
+    if (won) {
+      s.gamesWon++;
+      s.currentStreak++;
+      s.maxStreak = Math.max(s.maxStreak, s.currentStreak);
+      s.guessDistribution[guesses.value.length - 1]!++;
+    } else {
+      s.currentStreak = 0;
+    }
+    saveStats();
+  }
+
+  const COLOR_EMOJI: Record<string, string> = {
+    red: '🔴', orange: '🟠', yellow: '🟡',
+    green: '🟢', blue: '🔵', purple: '🟣'
+  };
+
+  function buildShareText(): string {
+    const result = status.value === 'won' ? `${guesses.value.length}/${MAX_GUESSES}` : `X/${MAX_GUESSES}`;
+    const rows = guesses.value.map(guess => {
+      const dots = [
+        ...Array(guess.feedback.black).fill('⬛'),
+        ...Array(guess.feedback.white).fill('⬜'),
+        ...Array(CODE_LENGTH - guess.feedback.black - guess.feedback.white).fill('⭕')
+      ].join('')
+      return guess.colors.map(c => COLOR_EMOJI[c]).join('') + '  ' + dots
+    })
+    return `ColorPass #${puzzleNumber} ${result}\n\n${rows.join('\n')}`
+  };
+
+  onMounted(loadState);
+
+  return {
+    guesses,
+    currentGuess,
+    status,
+    stats,
+    puzzleNumber,
+    secretCode: code,
+    addColor,
+    removeColor,
+    canSubmit,
+    submitGuess,
+    buildShareText,
+    MAX_GUESSES,
+    CODE_LENGTH
+  }
 }
