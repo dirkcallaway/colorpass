@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import confetti from 'canvas-confetti';
+
 const {
   guesses, currentGuess, status, stats,
   puzzleNumber, secretCode,
@@ -11,8 +13,15 @@ const showStats = ref(false);
 
 // Auto-show stats modal shortly after game ends
 watch(status, (val) => {
+  if (val === 'won') {
+    confetti({
+      particleCount: 150,
+      spread: 70,
+      origin: { y: 0.6 }
+    })
+  }
   if (val !== 'playing') {
-    setTimeout(() => showStats.value = true, 1200);
+    setTimeout(() => showStats.value = true, 1200)
   }
 });
 
