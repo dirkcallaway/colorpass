@@ -27,10 +27,14 @@ const defaultStats = (): GameStats => ({
 export function useGameState() {
   const { code, puzzleNumber, dateKey } = getDailyCode();
 
-  const guesses = ref<GuessRecord[]>([]);
-  const currentGuess = ref<(ColorId | null)[]>(Array(CODE_LENGTH).fill(null));
-  const status = ref<'playing' | 'won' | 'lost'>('playing');
-  const stats = ref<GameStats>(defaultStats());
+  const guesses        = ref<GuessRecord[]>([]);
+  const currentGuess   = ref<(ColorId | null)[]>(Array(CODE_LENGTH).fill(null));
+  const status         = ref<'playing' | 'won' | 'lost'>('playing');
+  const stats          = ref<GameStats>(defaultStats());
+  const hintsRemaining = ref(3);
+  const hintedSlots    = ref<Record<number, ColorId>>({});
+  const hintsUsed      = ref(0);
+
 
   const STATE_KEY = `colorpass-state-${dateKey}`;
   const STATS_KEY = `colorpass-stats`;
@@ -40,9 +44,13 @@ export function useGameState() {
       const raw = localStorage.getItem(STATE_KEY);
       if (raw) {
         const saved = JSON.parse(raw);
-        guesses.value = saved.guesses ?? [];
-        currentGuess.value = Array(CODE_LENGTH).fill(null);
-        status.value = saved.status ?? 'playing';
+        guesses.value        = saved.guesses ?? [];
+        currentGuess.value   = Array(CODE_LENGTH).fill(null);
+        status.value         = saved.status ?? 'playing';
+        hintsRemaining.value = saved.hintsRemaining ?? 3;
+        hintedSlots.value    = saved.hintedSlots ?? {};
+        hintsUsed.value      = saved.hintsUsed ?? 0;
+
       }
       const rawStats = localStorage.getItem(STATS_KEY);
       if (rawStats) stats.value = JSON.parse(rawStats);
@@ -116,7 +124,10 @@ export function useGameState() {
   };
 
   function buildShareText(): string {
-    const result = status.value === 'won' ? `${guesses.value.length}/${MAX_GUESSES}` : `X/${MAX_GUESSES}`;
+    const result = status.value === 'won'
+      ? `${guesses.value.length}/${MAX_GUESSES}${hintsUsed.value > 0 ? ' 💡' : ''}`
+      : `X/${MAX_GUESSES}`
+
     const rows = guesses.value.map(guess => {
       const dots = [
         ...Array(guess.feedback.black).fill('⬛'),
@@ -127,6 +138,32 @@ export function useGameState() {
     })
     return `ColorPass #${puzzleNumber} ${result}\n\n${rows.join('\n')}`
   };
+
+  function useHint() {
+    if (hintsRemaining.value === 0 || status.value !== 'playing') return;
+
+    const allPositions = [0, 1, 2, 3, 4];
+    const unhinted = allPositions.filter(i => !(i in hintedSlots.value));
+    if (unhinted.length === 0) return;
+
+    // Priority 1: first empty slot in currentGuess that hasn't been hinted
+    const emptyUnhinted = unhinted.filter(i => currentGuess.value[i] === null);
+    // Priority 2: positions player has never gotten correct in any past guess
+    const neverCorrect = unhinted.filter(i =>
+      !guesses.value.some(g => g.colors[i] === code[i])
+    );
+
+    const candidate =
+      emptyUnhinted[0] ??
+      neverCorrect[0] ??
+      unhinted[Math.floor(Math.random() * unhinted.length)]!
+
+    hintedSlots.value = { ...hintedSlots.value, [candidate]: code[candidate]! };
+    hintsRemaining.value--;
+    hintsUsed.value++;
+    saveState();
+  }
+
 
   onMounted(loadState);
 
@@ -143,6 +180,10 @@ export function useGameState() {
     submitGuess,
     buildShareText,
     MAX_GUESSES,
-    CODE_LENGTH
+    CODE_LENGTH,
+    hintsRemaining,
+    hintedSlots,
+    hintsUsed,
+    useHint
   }
 }
