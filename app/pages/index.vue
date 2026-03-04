@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import confetti from 'canvas-confetti';
+import { COLORS } from '~/utils/colorpass';
 
 const {
   guesses, currentGuess, status, stats,
@@ -81,10 +82,17 @@ onMounted(() => {
 
       <div v-else class="text-center space-y-2">
         <p v-if="status === 'won'" class="text-green-400 font-bold text-lg">You cracked it!</p>
-        <p v-else class="text-red-400 font-bold text-lg">
-          The code was:
-          <span class="font-mono">{{ secretCode.join(' – ') }}</span>
-        </p>
+        <div v-else class="flex flex-col items-center gap-2">
+          <p class="text-red-400 font-bold text-lg">The code was:</p>
+          <div class="flex gap-2">
+            <div
+              v-for="colorId in secretCode"
+              :key="colorId"
+              class="w-10 h-10 rounded-full border-2 border-gray-600"
+              :class="COLORS.find(c => c.id === colorId)?.bg"
+            />
+          </div>
+        </div>
         <button @click="showStats = true" class="text-sm text-gray-400 underline hover:text-white">
           See stats
         </button>
