@@ -18,8 +18,13 @@ const emit = defineEmits<{ close: [] }>();
 
 const { copy, copied } = useClipboard();
 
-function share() {
-  copy(props.buildShareText());
+async function share() {
+  const text = props.buildShareText();
+  if (navigator.share) {
+    await navigator.share({ text });
+  } else {
+    copy(text);
+  }
 }
 
 const winPercentage = computed(() =>
