@@ -128,14 +128,12 @@ export function useGameState() {
       ? `${guesses.value.length}/${MAX_GUESSES}${hintsUsed.value > 0 ? ' 💡' : ''}`
       : `X/${MAX_GUESSES}`
 
-    const rows = guesses.value.map(guess => {
-      const dots = [
+    const rows = guesses.value.map(guess =>
+      [
         ...Array(guess.feedback.black).fill('⬛'),
         ...Array(guess.feedback.white).fill('⬜'),
-        ...Array(CODE_LENGTH - guess.feedback.black - guess.feedback.white).fill('⭕')
       ].join('')
-      return guess.colors.map(c => COLOR_EMOJI[c]).join('') + '  ' + dots
-    })
+    )
     return `ColorPass #${puzzleNumber} ${result}\n\n${rows.join('\n')}`
   };
 
