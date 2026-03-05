@@ -118,11 +118,6 @@ export function useGameState() {
     saveStats();
   }
 
-  const COLOR_EMOJI: Record<string, string> = {
-    red: '🔴', orange: '🟠', yellow: '🟡',
-    green: '🟢', blue: '🔵', purple: '🟣'
-  };
-
   function buildShareText(): string {
     const result = status.value === 'won'
       ? `${guesses.value.length}/${MAX_GUESSES}${hintsUsed.value > 0 ? ' 💡' : ''}`
